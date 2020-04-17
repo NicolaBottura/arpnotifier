@@ -6,36 +6,24 @@ from datetime import datetime
 from scapy.all import *
 import ipaddress
 
+print("                       _   _  __ _           	    __
+                             | | (_)/ _(_)             w  c(..)o   (      
+  __ _ _ __ _ __  _ __   ___ | |_ _| |_ _  ___ _ __     \__(-)    __)
+ / _` | '__| '_ \| '_ \ / _ \| __| |  _| |/ _ \ '__|        /\   (
+| (_| | |  | |_) | | | | (_) | |_| | | | |  __/ |   	   /(_)___)   
+ \__,_|_|  | .__/|_| |_|\___/ \__|_|_| |_|\___|_|    	  w /|
+           | |                                              | \
+           |_|                                              m  m 	*apenotifier.py
+      
+      @Nicola Bottura 
+      @Giuseppe D'Agostino 
+      @Giorgia Lombardi
+")
+
 file="daemon.log"
 syslog_list=["new activity", "new station", "flip flop", "reused old ethernet address", "bogon", "ethernet mismatch", "changed ethernet address"]
 hours=[]
-
-print("                       _   _  __ _           
-                             | | (_)/ _(_)          
-  __ _ _ __ _ __  _ __   ___ | |_ _| |_ _  ___ _ __ 
- / _` | '__| '_ \| '_ \ / _ \| __| |  _| |/ _ \ '__|
-| (_| | |  | |_) | | | | (_) | |_| | | | |  __/ |   
- \__,_|_|  | .__/|_| |_|\___/ \__|_|_| |_|\___|_|   
-           | |                                      
-           |_|                                      
-
       
-           __
-     w  c(..)o   (
-      \__(-)    __)
-          /\   (
-         /(_)___)
-         w /|
-          | \
-          m  m
-      
-")
-  
-print("*" * 90)
-print("\t\t\t\t  - Arpwatch notifier -\n")
-print("\t\t@Nicola Bottura @Giuseppe D'Agostino @Giorgia Lombardi")
-print("*" * 90)
-
 #Iterate forever on the syslog file
 def cicle():
 	starting_time=starting()
@@ -92,9 +80,11 @@ def send_frame(addr, MAC, flag):
 	pkt= ether/ip/icmp
 	send(pkt)
 
+# Get the length of the line
 def line_len(line):
 	return len(line.split(" "))
 
+# Open the file where we store the last time processed(hh:mm:ss)
 def starting():
 	hour_f=open("current_hour.txt", "r")
 	return hour_f.read()
