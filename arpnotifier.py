@@ -10,6 +10,27 @@ file="daemon.log"
 syslog_list=["new activity", "new station", "flip flop", "reused old ethernet address", "bogon", "ethernet mismatch", "changed ethernet address"]
 hours=[]
 
+print("                       _   _  __ _           
+                             | | (_)/ _(_)          
+  __ _ _ __ _ __  _ __   ___ | |_ _| |_ _  ___ _ __ 
+ / _` | '__| '_ \| '_ \ / _ \| __| |  _| |/ _ \ '__|
+| (_| | |  | |_) | | | | (_) | |_| | | | |  __/ |   
+ \__,_|_|  | .__/|_| |_|\___/ \__|_|_| |_|\___|_|   
+           | |                                      
+           |_|                                      
+
+      
+           __
+     w  c(..)o   (
+      \__(-)    __)
+          /\   (
+         /(_)___)
+         w /|
+          | \
+          m  m
+      
+")
+  
 print("*" * 90)
 print("\t\t\t\t  - Arpwatch notifier -\n")
 print("\t\t@Nicola Bottura @Giuseppe D'Agostino @Giorgia Lombardi")
