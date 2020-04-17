@@ -43,14 +43,14 @@ def get_syslog(starting_time):
 							closing(hours)	
 
 					hours.append(time)
-
-					if line_len(line) == 10:
-						addr=line.split(" ")[7]
-						MAC=line.split(" ")[8]
-						next_frame(flag, time, addr, MAC, starting_time)
-					elif line_len(line) == 9:
+					
+					if line_len(line) == 9:
 						addr=line.split(" ")[6]
 						MAC=line.split(" ")[7]	
+						next_frame(flag, time, addr, MAC, starting_time)
+      					elif line_len(line) == 10:
+						addr=line.split(" ")[7]
+						MAC=line.split(" ")[8]
 						next_frame(flag, time, addr, MAC, starting_time)
 					elif line_len(line) == 11:
 						addr=line.split(" ")[8]
