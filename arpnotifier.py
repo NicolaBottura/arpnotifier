@@ -6,34 +6,33 @@ from datetime import datetime
 from scapy.all import *
 import ipaddress
 
-welcome = """ 
+welcome = """
                               _   _  __ _           	    __
-                             | | (_)/ _(_)             w  c(..)o   (      
+                             | | (_)/ _(_)             w  c(..)o   (    
   __ _ _ __ _ __  _ __   ___ | |_ _| |_ _  ___ _ __     \__(-)    __)
  / _` | '__| '_ \| '_ \ / _ \| __| |  _| |/ _ \ '__|        /\   (
-| (_| | |  | |_) | | | | (_) | |_| | | | |  __/ |   	   /(_)___)   
- \__,_|_|  | .__/|_| |_|\___/ \__|_|_| |_|\___|_|    	  w /|
-           | |                                              | \          
-           |_|                                              m  m 	
+| (_| | |  | |_) | | | | (_) | |_| | | | |  __/ |   	   /(_)___)
+ \__,_|_|  | .__/|_| |_|\___/ \__|_|_| |_|\___|_|    	  w /|  
+           | |                                              | \  
+           |_|                                              m  m    
 
                     *apenotifier.py
-      
-      @Nicola Bottura 
-      @Giuseppe D'Agostino 
-      @Giorgia Lombardi
+
+@Nicola Bottura,
+@Giuseppe D'Agostino,
+@Giorgia Lombardi.
 
 """
 
 print(welcome)
 
 file = "/var/log/syslog"
+temp_file =  "/root/arpnotifier/current_hour.txt"
 syslog_list = ["new activity", "new station", "flip flop", "reused old ethernet address",
-               "bogon", "ethernet mismatch", "changed ethernet address"]
+                "ethernet mismatch", "changed ethernet address"]
 hours = []
 
 # Iterate forever on the syslog file
-
-
 def cicle():
     starting_time = starting()
 
@@ -41,8 +40,6 @@ def cicle():
         get_syslog(starting_time)
 
 # Search in the syslog strings that refers to a possible intruder
-
-
 def get_syslog(starting_time):
     with open(file) as f_log:
         for line in f_log:
@@ -55,82 +52,56 @@ def get_syslog(starting_time):
 
                     hours.append(time)
 
-                    if line_len(line) == 9:
-                        addr = line.split(" ")[6]
-                        MAC = line.split(" ")[7]
-                        next_frame(flag, time, addr, MAC, starting_time)
-                    elif line_len(line) == 10:
-                        addr = line.split(" ")[7]
+                    if flag == "flip flop" and line_len(line) == 11:
+                        MAC=line.split(" ")[8]
+                        next_frame(flag, time, MAC, strating_time)
+                    elif (flag == "new station" or flag == "new activity") and line_len(line) == 10:
                         MAC = line.split(" ")[8]
-                        next_frame(flag, time, addr, MAC, starting_time)
-                    elif line_len(line) == 11:
-                        addr = line.split(" ")[8]
+                        next_frame(flag, time, MAC, starting_time)
+                    elif flag == "ethernet mismatch" and line_len(line) == 11:
+                        MAC = line.split(" ")[8]
+                        next_frame(flag, time, MAC, starting_time)
+                    elif flag == "changed ethernet address" and line_len(line) == 12:
                         MAC = line.split(" ")[9]
-                        next_frame(flag, time, addr, MAC, starting_time)
-                    elif line_len(line) == 12:
-                        addr = line.split(" ")[9]
+                        next_frame(flag, time, MAC, starting_time)
+                    elif flag == "reused old ethernet address" and line_len(line) == 13:
                         MAC = line.split(" ")[10]
-                        next_frame(flag, time, addr, MAC, starting_time)
+                        next_frame(flag, time, MAC, starting_time)
 
 # Compute the next MAC address that I want to process
-
-
-def next_frame(flag, time, addr, MAC, starting_time):
+def next_frame(flag, time, MAC, starting_time):
     if time > starting_time:
         starting_time = time
-        send_frame(addr, MAC, flag)
+        send_frame(MAC, flag)
 
-# Send the modified ethernet frame
-
-
-def send_frame(addr, MAC, flag):
+# Modify the ethernet frame and send it
+def send_frame(MAC, flag):
     ether = Ether()
     ether.type = 0x0101
-    ether.load = "Error: " + flag + " found"
-    ip = IP()
-    #ip.src = "100.101.0.2"
-    ip.dst = addr
-    icmp = ICMP()
-    icmp.type = 8
-    pkt = ether/ip/icmp
-    send(pkt)
+    ether.dst = MAC
+    print(MAC)
+    pkt = ether/Raw(load = "Warning: " + flag + " found with MAC: " + MAC)
+
+    print("Sending a warning frame to: " + MAC + "\n")
+    sendp(pkt, verbose=0)
 
 # Get the length of the line
-
-
 def line_len(line):
     return len(line.split(" "))
 
 # Open the file where we store the last time processed(hh:mm:ss)
-
-
 def starting():
-    hour_f = open("current_hour.txt", "r")
+    hour_f = open(temp_file, "r")
     return hour_f.read()
 
 
 # Write into a file the last hour seen by the program and exit
 def closing(hours):
-    hour_f = open("current_hour.txt", "w")
+    hour_f = open(temp_file, "w")
     hour_f.write(hours[-1])
     hour_f.close()
-    print("\n")
-    print("Nothing new..closing")
+    print("Nothing new.. closing.")
     sys.exit()
-
-
-def switch(flag):
-    switcher = {
-        "new activity": "Detected new activity",
-        "new station": "Detected new station",
-        "flip flop": "Detected flip flop",
-        "changed ethernet address": "detected changeging in ethernet address",
-        "bogon": "detected bogon",
-        "ethernet mismatch": "detected ethernet mismatch",
-        "reused old ethernet address": "detected reusing of an old ethernet address"
-    }
-    return switcher.get(flag)
-
 
 try:
     cicle()
