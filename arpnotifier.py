@@ -30,7 +30,6 @@ file = "/var/log/syslog"
 temp_file =  "/root/arpnotifier/current_hour.txt"
 syslog_list = ["new activity", "new station", "flip flop", "reused old ethernet address",
                 "ethernet mismatch", "changed ethernet address"]
-hours = []
 
 # Iterate forever on the syslog file
 def cicle():
@@ -39,22 +38,18 @@ def cicle():
     while(True):
         get_syslog(starting_time)
 
-# Search in the syslog strings that refers to a possible intruder
+# Search in the sysslog strings that refers to a possible intruder
 def get_syslog(starting_time):
     with open(file) as f_log:
         for line in f_log:
+            starting_time = starting()
             for flag in syslog_list:
                 if flag in line:
                     time = line.split(" ")[2]
-                    for times in hours:
-                        if time in times:
-                            closing(hours)
-
-                    hours.append(time)
 
                     if flag == "flip flop" and line_len(line) == 11:
                         MAC=line.split(" ")[8]
-                        next_frame(flag, time, MAC, strating_time)
+                        next_frame(flag, time, MAC, starting_time)
                     elif (flag == "new station" or flag == "new activity") and line_len(line) == 10:
                         MAC = line.split(" ")[8]
                         next_frame(flag, time, MAC, starting_time)
@@ -72,18 +67,20 @@ def get_syslog(starting_time):
 def next_frame(flag, time, MAC, starting_time):
     if time > starting_time:
         starting_time = time
-        send_frame(MAC, flag)
+        send_frame(MAC, flag, time)
 
 # Modify the ethernet frame and send it
-def send_frame(MAC, flag):
+def send_frame(MAC, flag, time):
     ether = Ether()
     ether.type = 0x0101
     ether.dst = MAC
     print(MAC)
     pkt = ether/Raw(load = "Warning: " + flag + " found with MAC: " + MAC)
 
-    print("Sending a warning frame to: " + MAC + "\n")
+    print("Sending a warning frame to: " + MAC + " - FLAG: " + flag + "\n")
     sendp(pkt, verbose=0)
+
+    update_current_hour(time)
 
 # Get the length of the line
 def line_len(line):
@@ -94,14 +91,12 @@ def starting():
     hour_f = open(temp_file, "r")
     return hour_f.read()
 
-
 # Write into a file the last hour seen by the program and exit
-def closing(hours):
+def update_current_hour(time):
     hour_f = open(temp_file, "w")
-    hour_f.write(hours[-1])
+    hour_f.write(time)
     hour_f.close()
-    print("Nothing new.. closing.")
-    sys.exit()
+    print("Cursor updated")
 
 try:
     cicle()
